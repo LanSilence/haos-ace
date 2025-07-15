@@ -25,3 +25,7 @@ for target in $TARGET; do
     echo "./scripts/enter.sh make -j $(( $(nproc) * 2 )) $target"
     ./scripts/enter.sh make -j $(( $(nproc) * 2 )) $target
 done
+
+if [ ! -d ./output ];then
+    ln -s operating-system/output ./output
+fi

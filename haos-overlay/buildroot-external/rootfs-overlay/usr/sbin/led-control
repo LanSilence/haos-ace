@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# LED 设备路径
+LED_PATH="/sys/class/leds/sys_led"
+
+# 检查 LED 设备是否存在
+if [ ! -d "$LED_PATH" ]; then
+    echo "Error: LED device not found at $LED_PATH"
+    exit 1
+fi
+modprobe ledtrig-timer 
+# 功能函数：设置 LED 状态
+set_led_state() {
+    case $1 in
+        "on")
+            echo "none" > "$LED_PATH/trigger"  # 关闭触发模式
+            echo "1" > "$LED_PATH/brightness"  # 常亮
+            echo "LED set to ON"
+            ;;
+        "off")
+            echo "none" > "$LED_PATH/trigger"  # 关闭触发模式
+            echo "0" > "$LED_PATH/brightness"  # 长灭
+            echo "LED set to OFF"
+            ;;
+        "heartbeat")
+            echo "heartbeat" > "$LED_PATH/trigger"  # 心跳模式
+            echo "LED set to HEARTBEAT"
+            ;;
+        "slow")
+            echo "timer" > "$LED_PATH/trigger"  # 定时器触发
+            echo "1000" > "$LED_PATH/delay_on"  # 亮 1000ms
+            echo "1000" > "$LED_PATH/delay_off" # 灭 1000ms
+            echo "LED set to SLOW BLINK"
+            ;;
+        "fast")
+            echo "timer" > "$LED_PATH/trigger"  # 定时器触发
+            echo "100" > "$LED_PATH/delay_on"   # 亮 100ms
+            echo "100" > "$LED_PATH/delay_off"  # 灭 100ms
+            echo "LED set to FAST BLINK"
+            ;;
+        *)
+            echo "Usage: $0 {on|off|heartbeat|slow|fast}"
+            exit 1
+            ;;
+    esac
+}
+
+# 交互模式或命令行参数
+if [ $# -eq 0 ]; then
+    # 交互式菜单
+    echo "Select LED state:"
+    echo "1. ON (常亮)"
+    echo "2. OFF (长灭)"
+    echo "3. HEARTBEAT (心跳)"
+    echo "4. SLOW BLINK (慢闪)"
+    echo "5. FAST BLINK (快闪)"
+    read -p "Enter choice (1-5): " choice
+
+    case $choice in
+        1) set_led_state "on" ;;
+        2) set_led_state "off" ;;
+        3) set_led_state "heartbeat" ;;
+        4) set_led_state "slow" ;;
+        5) set_led_state "fast" ;;
+        *) echo "Invalid choice"; exit 1 ;;
+    esac
+else
+    # 命令行参数直接调用
+    set_led_state "$1"
+fi

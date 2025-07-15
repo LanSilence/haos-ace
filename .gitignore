@@ -1,0 +1,7 @@
+cache/assismgr.deb
+haos-overlay/buildroot-external/rootfs-overlay/etc/assismgr/
+haos-overlay/buildroot-external/rootfs-overlay/usr/www/
+haos-overlay/buildroot-external/rootfs-overlay/usr/lib/systemd/system/multi-user.target.wants/assismgr.service
+haos-overlay/buildroot-external/rootfs-overlay/usr/lib/systemd/system/assismgr.service
+haos-overlay/buildroot-external/rootfs-overlay/usr/sbin/assismgr
+output

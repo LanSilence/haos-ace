@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Get current boot slot
+CURRENT_SLOT=$(cat /proc/cmdline | grep -o 'rauc.slot=[A-B]' | cut -d= -f2)
+
+if [ -z "$CURRENT_SLOT" ]; then
+    echo "Error: Unable to determine current boot slot"
+    exit 1
+fi
+
+# Determine target boot order
+if [ "$CURRENT_SLOT" = "A" ]; then
+    NEW_ORDER="B A"
+elif [ "$CURRENT_SLOT" = "B" ]; then
+    NEW_ORDER="A B"
+else
+    echo "Error: Unknown slot '$CURRENT_SLOT'"
+    exit 1
+fi
+
+# Execute environment updates
+echo "Current slot: $CURRENT_SLOT"
+echo "Setting boot order to: $NEW_ORDER"
+echo "Clearing MACHINE_ID..."
+
+fw_setenv MACHINE_ID
+fw_setenv BOOT_ORDER "$NEW_ORDER"
+if [ "$NEW_ORDER" = "A B" ]; then
+    fw_setenv BOOT_A_LEFT 3
+else
+    fw_setenv BOOT_B_LEFT 3
+fi
+# [ "$NEW_ORDER" = "A B" ] && fw_setenv BOOT_A_LEFT 3 || fw_setenv BOOT_B_LEFT 3
+
+if [ $? -eq 0 ]; then
+    echo "Success! System will boot from alternate slot on next restart."
+    echo "New boot order: $(fw_printenv BOOT_ORDER)"
+else
+    echo "Error: fw_setenv command failed"
+    exit 1
+fi
+
+exit 0
