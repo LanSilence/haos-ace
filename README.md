@@ -1,4 +1,4 @@
-# Home Assistant OS H618-k2b & rk3399-custom Build System
+# Home Assistant OS Accelerated China Edition（haos-ace） Build System
 
 
 本工程以 Home Assistant OS 官方源码为子模块，自动拉取并编译。通过本地 haos-overlay 目录结构，覆盖和定制官方源码配置，实现新开发板的快速适配。
