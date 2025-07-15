@@ -1,0 +1,142 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+env:
+  GIT_TERMINAL_PROMPT: 0  # 禁用终端提示
+  GIT_SUBMODULE_STRATEGY: recursive  # 强制递归初始化子模块
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+          fetch-depth: 0
+          submodules: true
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Initialization environment and Free up disk space
+      run: |
+        sudo timedatectl set-timezone "Asia/Shanghai"
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo rm -rf /var/cache/apt/archives/*
+        sudo rm -rf /var/cache/debconf/*-old
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo apt clean
+        sudo rm -rf /etc/apt/sources.list.d/*
+        sudo apt-get -qq update -y
+        sudo apt-get -qq autoremove --purge -y
+        sudo apt-get -qq clean -y
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        #sudo rm -rf /usr/share/
+        df -h
+    - name: Write key to file
+      run: |
+        echo "${{ secrets.MID_KEY_PEM }}" > ./operating-system/key.pem
+        echo "${{ secrets.MID_CERT_PEM }}" > ./operating-system/cert.pem
+
+    - name: build HAOS-ACE
+      shell: 'script -q -e -c "bash {0}"'
+      run: |
+          sleep $((RANDOM % 600))    
+          max_retries=3
+          count=0
+          until ./build.sh ; do
+            count=$((count + 1))
+            if [ $count -ge $max_retries ]; then
+              echo "Build failed after $count attempts."
+              exit 1
+            fi
+            echo "Build failed. Retrying in 30s... (Attempt $count/$max_retries)"
+            sleep 30
+          done
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-outputs
+        path: |
+          output/images/haos*.xz
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        # 获取当前标签
+        CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+        
+        # 获取上一个标签
+        PREV_TAG=$(git describe --abbrev=0 --tags ${CURRENT_TAG}^ 2>/dev/null || echo "")
+        
+        # 如果没有找到上一个标签，使用初始提交
+        if [ -z "${PREV_TAG}" ]; then
+          PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+        fi
+
+        # 生成主项目变更日志（简化转义）
+        MAIN_COMMITS=$(git log --pretty=format:"- [主项目] %h %s (by %an)" ${PREV_TAG}..${CURRENT_TAG})
+        if [ -z "$MAIN_COMMITS" ]; then
+          MAIN_COMMITS="  - 无变更记录"
+        fi
+        
+        # 初始化子模块信息
+        SUBMODULE_INFO=""
+        
+        # 遍历子模块收集变更信息
+        git submodule foreach --quiet '
+          MODULE_PATH="$path"
+          CURRENT_SHA=$(git rev-parse HEAD)
+          
+          # 获取子模块在PREV_TAG时的commit
+          PREV_SHA=$(git rev-list -n 1 "${PREV_TAG}" -- "${MODULE_PATH}" 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          
+          # 生成子模块变更日志
+          COMMITS=$(git log --pretty=format:"- [子模块] %h %s (by %an)" "${PREV_SHA}".."${CURRENT_SHA}" 2>/dev/null)
+          if [ -z "$COMMITS" ]; then
+            COMMITS="  - 无变更记录"
+          fi
+          
+          # 格式化子模块信息
+          SUBMODULE_INFO="${SUBMODULE_INFO}
+          ### 子模块 ${MODULE_PATH}
+          - Commit变更: $(echo "${PREV_SHA}" | cut -c1-7) → $(echo "${CURRENT_SHA}" | cut -c1-7)
+          ${COMMITS}
+          "
+        ' || true
+        
+        # 构建发布说明（不再进行额外转义）
+        NOTES="### 版本变更记录 (${CURRENT_TAG} → ${PREV_TAG})
+        
+        #### 主项目变更
+        ${MAIN_COMMITS}
+        
+        #### 子模块变更
+        ${SUBMODULE_INFO}
+        
+        ### 构建信息
+        * 版本: ${CURRENT_TAG}
+        * 构建时间: $(date)"
+
+        # 直接输出到环境变量
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Publish to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          output/images/*.xz
+          output/images/*.raucb
+        tag_name: ${{ github.ref_name }}
+        name: "Haos-ace Release ${{ github.ref_name }}"
+        body: ${{ steps.release_notes.outputs.notes }}
+        draft: false
