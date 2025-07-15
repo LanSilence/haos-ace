@@ -1,0 +1,13 @@
+diff --git a/board/firefly/roc-pc-rk3399/roc-pc-rk3399.c b/board/firefly/roc-pc-rk3399/roc-pc-rk3399.c
+index 6937a271..e4713e63 100644
+--- a/board/firefly/roc-pc-rk3399/roc-pc-rk3399.c
++++ b/board/firefly/roc-pc-rk3399/roc-pc-rk3399.c
+@@ -13,7 +13,7 @@
+ #include <asm/arch-rockchip/gpio.h>
+ #include <asm/arch-rockchip/grf_rk3399.h>
+ 
+-#ifdef CONFIG_XPL_BUILD
++#if 0
+ 
+ #define PMUGRF_BASE	0xff320000
+ #define GPIO0_BASE	0xff720000

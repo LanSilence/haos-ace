@@ -1,0 +1,249 @@
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h616-orangepi-zero.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h616-orangepi-zero.dtsi
+index fc7315b94..9a0b5e2eb 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h616-orangepi-zero.dtsi
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h616-orangepi-zero.dtsi
+@@ -55,7 +55,7 @@ reg_usb1_vbus: regulator-usb1-vbus {
+ 		regulator-max-microvolt = <5000000>;
+ 		vin-supply = <&reg_vcc5v>;
+ 		enable-active-high;
+-		gpio = <&pio 2 16 GPIO_ACTIVE_HIGH>; /* PC16 */
++		gpio = <&pio 8 6 GPIO_ACTIVE_HIGH>; /* PI6 */
+ 	};
+ };
+ 
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h616.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h616.dtsi
+index 695815d10..1fa940bf8 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h616.dtsi
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h616.dtsi
+@@ -242,8 +242,7 @@ pio: pinctrl@300b000 {
+ 			ext_rgmii_pins: rgmii-pins {
+ 				pins = "PI0", "PI1", "PI2", "PI3", "PI4",
+ 				       "PI5", "PI7", "PI8", "PI9", "PI10",
+-				       "PI11", "PI12", "PI13", "PI14", "PI15",
+-				       "PI16";
++				       "PI11", "PI12", "PI13", "PI14", "PI15";
+ 				function = "emac0";
+ 				drive-strength = <40>;
+ 			};
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
+index 473bae8e0..fc0552e04 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
+@@ -5,7 +5,7 @@
+ 
+ /dts-v1/;
+ 
+-#include "sun50i-h616-orangepi-zero.dtsi"
++#include "sun50i-h618-k2b.dtsi"
+ #include "sun50i-h616-cpu-opp.dtsi"
+ 
+ #include <dt-bindings/gpio/gpio.h>
+@@ -31,18 +31,11 @@ leds {
+ 		compatible = "gpio-leds";
+ 
+ 		led-0 {
+-			function = LED_FUNCTION_POWER;
+-			color = <LED_COLOR_ID_RED>;
+-			gpios = <&pio 2 12 GPIO_ACTIVE_HIGH>; /* PC12 */
+-			default-state = "on";
+-		};
+-
+-		led-1 {
+ 			label="sys_led";
+-            linux,default-trigger = "heartbeat";
+ 			function = LED_FUNCTION_STATUS;
+ 			color = <LED_COLOR_ID_GREEN>;
+ 			gpios = <&pio 8 16 GPIO_ACTIVE_HIGH>; /* PI16 */
++			default-state = "on";
+ 		};
+ 	};
+ 
+@@ -53,6 +46,7 @@ reg_vcc5v: vcc5v {
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 		regulator-always-on;
++		regulator-boot-on;
+ 	};
+ 
+ 	reg_vcc3v3: vcc3v3 {
+@@ -63,6 +57,7 @@ reg_vcc3v3: vcc3v3 {
+ 		regulator-max-microvolt = <3300000>;
+ 		vin-supply = <&reg_vcc5v>;
+ 		regulator-always-on;
++		gpio = <0>;
+ 	};
+ 
+ 	wifi_pwrseq: pwrseq {
+@@ -181,17 +176,7 @@ reg_dcdc3: dcdc3 {
+ };
+ 
+ &spi0  {
+-	status = "okay";
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&spi0_pins>, <&spi0_cs0_pin>;
+-
+-	flash@0 {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		compatible = "jedec,spi-nor";
+-		reg = <0>;
+-		spi-max-frequency = <40000000>;
+-	};
++	status = "disabled";
+ };
+ 
+ &uart0 {
+@@ -201,22 +186,7 @@ &uart0 {
+ };
+ 
+ &usbotg {
+-	/*
+-	 * PHY0 pins are connected to a USB-C socket, but a role switch
+-	 * is not implemented: both CC pins are pulled to GND.
+-	 * The VBUS pins power the device, so a fixed peripheral mode
+-	 * is the best choice.
+-	 * The board can be powered via GPIOs, in this case port0 *can*
+-	 * act as a host (with a cable/adapter ignoring CC), as VBUS is
+-	 * then provided by the GPIOs. Any user of this setup would
+-	 * need to adjust the DT accordingly: dr_mode set to "host",
+-	 * enabling OHCI0 and EHCI0.
+-	 */
++
+ 	dr_mode = "peripheral";
+ 	status = "okay";
+ };
+-
+-&usbphy {
+-	usb1_vbus-supply = <&reg_vcc5v>;
+-	status = "disabled";
+-};
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dtsi
+new file mode 100644
+index 000000000..d07e987f6
+--- /dev/null
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dtsi
+@@ -0,0 +1,124 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (C) 2020 Arm Ltd.
++ *
++ * DT nodes common between Orange Pi Zero 2 and Orange Pi Zero 3.
++ * Excludes PMIC nodes and properties, since they are different between the two.
++ */
++
++#include "sun50i-h616.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	aliases {
++		ethernet0 = &emac0;
++		serial0 = &uart0;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led-0 {
++			function = LED_FUNCTION_STATUS;
++			color = <LED_COLOR_ID_GREEN>;
++			gpios = <&pio 2 13 GPIO_ACTIVE_HIGH>; /* PC13 */
++		};
++	};
++
++	reg_vcc5v: vcc5v {
++		/* board wide 5V supply directly from the USB-C socket */
++		compatible = "regulator-fixed";
++		regulator-name = "vcc-5v";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++	};
++
++	reg_usb1_vbus: regulator-usb1-vbus {
++		compatible = "regulator-fixed";
++		regulator-name = "usb1-vbus";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_vcc5v>;
++		enable-active-high;
++		gpio = <&pio 8 6 GPIO_ACTIVE_HIGH>; /* PI6 */
++	};
++};
++
++&ehci1 {
++	status = "okay";
++};
++
++/* USB 2 & 3 are on headers only. */
++
++&emac0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&ext_rgmii_pins>;
++	phy-handle = <&ext_rgmii_phy>;
++	status = "okay";
++};
++
++&mdio0 {
++	ext_rgmii_phy: ethernet-phy@1 {
++		compatible = "ethernet-phy-ieee802.3-c22";
++		reg = <1>;
++	};
++};
++
++&mmc0 {
++	cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>;	/* PF6 */
++	bus-width = <4>;
++	status = "okay";
++};
++
++&ohci1 {
++	status = "okay";
++};
++
++&spi0  {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>, <&spi0_cs0_pin>;
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <40000000>;
++	};
++};
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_ph_pins>;
++	status = "okay";
++};
++
++&usbotg {
++	/*
++	 * PHY0 pins are connected to a USB-C socket, but a role switch
++	 * is not implemented: both CC pins are pulled to GND.
++	 * The VBUS pins power the device, so a fixed peripheral mode
++	 * is the best choice.
++	 * The board can be powered via GPIOs, in this case port0 *can*
++	 * act as a host (with a cable/adapter ignoring CC), as VBUS is
++	 * then provided by the GPIOs. Any user of this setup would
++	 * need to adjust the DT accordingly: dr_mode set to "host",
++	 * enabling OHCI0 and EHCI0.
++	 */
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&usbphy {
++	usb1_vbus-supply = <&reg_usb1_vbus>;
++	status = "okay";
++};

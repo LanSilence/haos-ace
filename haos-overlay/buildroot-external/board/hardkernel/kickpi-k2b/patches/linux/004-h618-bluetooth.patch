@@ -1,0 +1,26 @@
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
+index 065ace8..1877455 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
+@@ -194,6 +194,21 @@ &uart0 {
+        status = "okay";
+ };
+ 
++&uart1 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart1_pins>, <&uart1_rts_cts_pins>;
++       uart-has-rtscts;
++       status = "okay";
++
++       bluetooth {
++               device-wakeup-gpios = <&pio 6 17 GPIO_ACTIVE_HIGH>; /* PG17 */
++               host-wakeup-gpios = <&pio 6 16 GPIO_ACTIVE_HIGH>; /* PG16 */
++               enable-gpios = <&pio 6 19 GPIO_ACTIVE_HIGH>; /* PG19 */
++               max-speed = <1500000>;
++               status = "okay";
++       };
++};
++
+ &usbotg {
+ 
+        dr_mode = "peripheral";

@@ -1,0 +1,13 @@
+[Unit]
+Description=Attach Bluetooth HCI to ttyS1
+After=hassos-overlay.service
+Requires=dev-ttyS1.device
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/hciattach -n /dev/ttyS1 any 1500000 flow
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
