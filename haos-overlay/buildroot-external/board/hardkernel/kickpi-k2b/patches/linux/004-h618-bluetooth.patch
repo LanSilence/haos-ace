@@ -1,9 +1,9 @@
 diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
-index 065ace8..1877455 100644
+index 065ace8..321e404 100644
 --- a/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
 +++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-k2b.dts
 @@ -194,6 +194,21 @@ &uart0 {
-        status = "okay";
+ 	status = "okay";
  };
  
 +&uart1 {
@@ -23,4 +23,4 @@ index 065ace8..1877455 100644
 +
  &usbotg {
  
-        dr_mode = "peripheral";
+ 	dr_mode = "peripheral";

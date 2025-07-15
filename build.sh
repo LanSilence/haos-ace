@@ -4,7 +4,7 @@ echo -e "\033[34;43m编译本工程，系统必须支持docker\033[0m"
 echo -e "\033[34;43mBuilding this project, the system must support Docker\033[0m"
 
 
-DEFAULT_TARGET="k2b_h618 rk3399_ustom"
+DEFAULT_TARGET="k2b_h618 rk3399_custom"
 
 TARGET="${1:-$DEFAULT_TARGET}" 
 
@@ -23,7 +23,12 @@ cd operating-system
 for target in $TARGET; do
     echo -e "Building for target: \033[34;43m$target\033[0m"
     echo "./scripts/enter.sh make -j $(( $(nproc) * 2 )) $target"
-    ./scripts/enter.sh make -j $(( $(nproc) * 2 )) $target
+    if ./scripts/enter.sh make -j $(( $(nproc) * 2 )) $target; then
+        echo "Build for $target succeeded."
+    else
+        echo "Build for $target failed."
+        exit 1
+    fi
 done
 
 if [ ! -d ./output ];then
