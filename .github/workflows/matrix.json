@@ -1,0 +1,14 @@
+[
+  {
+    "id": "rk3399-pc",
+    "defconfig": "rk3399_custom",
+    "architecture": "aarch64",
+    "label": "board/rk3399-custom"
+  },
+  {
+    "id": "kickpi-k2b",
+    "defconfig": "k2b_h618",
+    "architecture": "aarch64",
+    "label": "board/kickpi-k2b"
+  }
+]
