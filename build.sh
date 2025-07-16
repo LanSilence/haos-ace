@@ -30,7 +30,7 @@ for target in $TARGET; do
         exit 1
     fi
 done
-
+cd ../
 if [ ! -d ./output ];then
     ln -s operating-system/output ./output
 fi
