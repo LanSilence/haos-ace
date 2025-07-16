@@ -74,24 +74,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.target }}
-          path: output/images/haos*.xz
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: build-*
-          path: artifacts
+          path: output/images/haos*
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: artifacts/**
+          files: output/images/haos*
           tag_name: ${{ github.ref_name }}
           name: "Haos-ace Release ${{ github.ref_name }}"
           body: |
