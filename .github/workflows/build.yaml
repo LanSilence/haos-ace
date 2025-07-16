@@ -86,69 +86,6 @@ jobs:
           pattern: build-*
           path: artifacts
 
-      - name: Generate Release Notes
-        id: release_notes
-        run: |
-            # 获取当前标签
-            CURRENT_TAG="${GITHUB_REF#refs/tags/}"
-            
-            # 获取上一个标签
-            PREV_TAG=$(git describe --abbrev=0 --tags ${CURRENT_TAG}^ 2>/dev/null || echo "")
-            
-            # 如果没有找到上一个标签，使用初始提交
-            if [ -z "${PREV_TAG}" ]; then
-              PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-            fi
-            
-            # 生成主项目变更日志（简化转义）
-            MAIN_COMMITS=$(git log --pretty=format:"- [主项目] %h %s (by %an)" ${PREV_TAG}..${CURRENT_TAG})
-            if [ -z "$MAIN_COMMITS" ]; then
-              MAIN_COMMITS="  - 无变更记录"
-            fi
-            
-            # 初始化子模块信息
-            SUBMODULE_INFO=""
-            
-            # 遍历子模块收集变更信息
-            git submodule foreach --quiet '
-              MODULE_PATH="$path"
-              CURRENT_SHA=$(git rev-parse HEAD)
-              
-              # 获取子模块在PREV_TAG时的commit
-              PREV_SHA=$(git rev-list -n 1 "${PREV_TAG}" -- "${MODULE_PATH}" 2>/dev/null || git rev-list --max-parents=0 HEAD)
-              
-              # 生成子模块变更日志
-              COMMITS=$(git log --pretty=format:"- [子模块] %h %s (by %an)" "${PREV_SHA}".."${CURRENT_SHA}" 2>/dev/null)
-              if [ -z "$COMMITS" ]; then
-                COMMITS="  - 无变更记录"
-              fi
-              
-              # 格式化子模块信息
-              SUBMODULE_INFO="${SUBMODULE_INFO}
-              ### 子模块 ${MODULE_PATH}
-              - Commit变更: $(echo "${PREV_SHA}" | cut -c1-7) → $(echo "${CURRENT_SHA}" | cut -c1-7)
-              ${COMMITS}
-              "
-            ' || true
-            
-            # 构建发布说明（不再进行额外转义）
-            NOTES="### 版本变更记录 (${CURRENT_TAG} → ${PREV_TAG})
-            
-            #### 主项目变更
-            ${MAIN_COMMITS}
-            
-            #### 子模块变更
-            ${SUBMODULE_INFO}
-            
-            ### 构建信息
-            * 版本: ${CURRENT_TAG}
-            * 构建时间: $(date)"
-            
-            # 直接输出到环境变量
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            echo "$NOTES" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v1
         env:
@@ -157,5 +94,13 @@ jobs:
           files: artifacts/**
           tag_name: ${{ github.ref_name }}
           name: "Haos-ace Release ${{ github.ref_name }}"
-          body: ${{ steps.release_notes.outputs.notes }}
+          body: |
+            自动化构建的应用服务，包含以下文件：
+            - haos*.img.xz  压缩烧写镜像
+            - haos*.raucb   OTA 更新包
+
+            * 版本: ${{ github.ref_name }}
+            * Commit: ${{ github.sha }}
+            * 提交信息: ${{ github.event.head_commit.message }}
+            * 提交者: ${{ github.event.head_commit.author.name }}
           draft: false
