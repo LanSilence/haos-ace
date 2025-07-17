@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # LED 设备路径
-LED_PATH="/sys/class/leds/sys_led"
+LED_PATH="/sys/class/leds/$1"
 
 # 检查 LED 设备是否存在
 if [ ! -d "$LED_PATH" ]; then
@@ -46,7 +46,7 @@ set_led_state() {
 }
 
 # 交互模式或命令行参数
-if [ $# -eq 0 ]; then
+if [ $# -eq 1 ]; then
     # 交互式菜单
     echo "Select LED state:"
     echo "1. ON (常亮)"
@@ -66,5 +66,5 @@ if [ $# -eq 0 ]; then
     esac
 else
     # 命令行参数直接调用
-    set_led_state "$1"
+    set_led_state "$2"
 fi
