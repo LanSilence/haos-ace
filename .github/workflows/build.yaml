@@ -83,11 +83,11 @@ jobs:
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} (${{ steps.date.outputs.DATE }})
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: output/images/haos*
           tag_name: ${{ github.ref_name }}
-          name: "Haos-ace Release ${{ github.ref_name }}"
+          name: "Haos-ace Release ${{ github.ref_name }} (${{ steps.date.outputs.DATE }})"
           body: |
             自动化构建的应用服务，包含以下文件：
             - haos*.img.xz  压缩烧写镜像
@@ -95,6 +95,7 @@ jobs:
 
             * 版本: ${{ github.ref_name }}
             * Commit: ${{ github.sha }}
-            * 提交信息: ${{ github.event.head_commit.message }}
+            * 版本信息: 
+              ${{ github.event.head_commit.message }}
             * 提交者: ${{ github.event.head_commit.author.name }}
           draft: false
