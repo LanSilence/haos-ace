@@ -76,10 +76,14 @@ jobs:
           name: build-${{ matrix.target }}
           path: output/images/haos*
 
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} (${{ steps.date.outputs.DATE }})
         with:
           files: output/images/haos*
           tag_name: ${{ github.ref_name }}

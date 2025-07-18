@@ -2,13 +2,33 @@
 
 # LED 设备路径
 LED_PATH="/sys/class/leds/$1"
-
+LED_NAME=$1
 # 检查 LED 设备是否存在
 if [ ! -d "$LED_PATH" ]; then
     echo "Error: LED device not found at $LED_PATH"
     exit 1
 fi
 modprobe ledtrig-timer 
+
+# 设置led到默认状态
+
+set_led_default() {
+    ALL_LABLES=$(find /sys/firmware/devicetree/base/leds/ -maxdepth 2 -type f -name label)
+    for LABEL in $ALL_LABLES; do
+        LABEL_NAME=$(cat "$LABEL")
+        if [ "$LABEL_NAME" == "$LED_NAME" ]; then
+            DEFAULT_PATH=$(dirname "$LABEL")/linux,default-trigger
+            if [ -f "$DEFAULT_PATH" ]; then
+                DEFAULT_TRIGGER=$(cat "$DEFAULT_PATH")
+                echo "$DEFAULT_TRIGGER" > "$LED_PATH/trigger"
+                echo "LED set to DEFAULT: $DEFAULT_TRIGGER"
+            else
+                echo "Warning: Default trigger not found for $LED_NAME"
+            fi
+        fi
+    done
+}
+
 # 功能函数：设置 LED 状态
 set_led_state() {
     case $1 in
@@ -38,8 +58,11 @@ set_led_state() {
             echo "100" > "$LED_PATH/delay_off"  # 灭 100ms
             echo "LED set to FAST BLINK"
             ;;
+        "default")
+            set_led_default
+            ;;
         *)
-            echo "Usage: $0 {on|off|heartbeat|slow|fast}"
+            echo "Usage: $0 ledname {on|off|heartbeat|slow|fast|default}"
             exit 1
             ;;
     esac
@@ -54,7 +77,8 @@ if [ $# -eq 1 ]; then
     echo "3. HEARTBEAT (心跳)"
     echo "4. SLOW BLINK (慢闪)"
     echo "5. FAST BLINK (快闪)"
-    read -p "Enter choice (1-5): " choice
+    echo "6. DEFAULT (默认)"
+    read -p "Enter choice (1-6): " choice
 
     case $choice in
         1) set_led_state "on" ;;
@@ -62,6 +86,7 @@ if [ $# -eq 1 ]; then
         3) set_led_state "heartbeat" ;;
         4) set_led_state "slow" ;;
         5) set_led_state "fast" ;;
+        6) set_led_state "default" ;;
         *) echo "Invalid choice"; exit 1 ;;
     esac
 else
