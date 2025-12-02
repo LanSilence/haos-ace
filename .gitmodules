@@ -1,4 +1,4 @@
 [submodule "operating-system"]
 	path = operating-system
 	url = https://github.com/home-assistant/operating-system.git
-	tag = 16.2
+	tag = 16.3
