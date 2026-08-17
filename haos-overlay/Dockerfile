@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         bzip2 \
         cpio \
+        e2fsprogs \
         file \
         git \
         graphviz \
@@ -38,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         openssh-client \
         patch \
         perl \
+        pigz \
         python3 \
         python3-matplotlib \
         python-is-python3 \

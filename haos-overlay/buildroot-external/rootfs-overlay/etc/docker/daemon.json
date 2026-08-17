@@ -1,15 +1,17 @@
 {
-    "storage-driver": "overlay2",
     "log-driver": "journald",
-    "experimental": true,
-    "ip6tables": true,
     "log-opts": {
         "tag": "{{.Name}}"
     },
-    "registry-mirrors": [
-        "https://docker.1ms.run"
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.m.daocloud.io",
+    "https://docker.1panel.live",
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com",
+    "https://docker.nju.edu.cn"
     ],
     "data-root": "/mnt/data/docker",
-    "deprecated-key-path": "/mnt/overlay/etc/docker/key.json",
-    "bip": "172.30.232.1/23"
+    "bip": "172.30.232.1/23",
+    "ipv6": true
 }
