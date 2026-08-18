@@ -86,7 +86,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: output/images/haos*
-          tag_name: ${{ github.ref_name }}
+          tag_name: $${{ github.ref_name }}-${{ steps.date.outputs.DATE }}
           name: "Haos-ace Release ${{ github.ref_name }} (${{ steps.date.outputs.DATE }})"
           body: |
             自动化构建的应用服务，包含以下文件：
